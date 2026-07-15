@@ -42,6 +42,11 @@ public class MessagesConfig {
             "<red>No hay servidores disponibles a los que conectarte en este momento.</red>");
         DEFAULTS.put("server-shutdown-generic",
             "<red>El servidor <yellow><server></yellow> se ha cerrado.</red>");
+        // NUEVO: mensaje de respaldo configurable cuando el backend no envia ninguna razon de kick.
+        // Antes este texto estaba escrito directamente en el codigo Java (hardcodeado y con una
+        // falta de ortografia: "Sin razon especifica"). Ahora es 100% editable desde este archivo.
+        DEFAULTS.put("default-kick-reason",
+            "Sin razón especificada");
     }
 
     public MessagesConfig(Path dataDirectory, Logger logger) {
@@ -91,6 +96,7 @@ public class MessagesConfig {
             writer.write("# VelocityCustomMessages\n");
             writer.write("# Placeholders disponibles: <server>, <reason>\n");
             writer.write("# Formato de texto: MiniMessage -> https://docs.advntr.dev/minimessage/format.html\n");
+            writer.write("# 'default-kick-reason' se usa cuando el backend no envia ninguna razon de kick.\n");
             writer.write("# Despues de editar, usa: /customessages reload\n\n");
             yaml.dump(DEFAULTS, writer);
         }
@@ -105,11 +111,20 @@ public class MessagesConfig {
         }
     }
 
+    /**
+     * Devuelve el texto configurable de "default-kick-reason" ya convertido a Component.
+     * Se usa como fallback cuando el evento de Velocity no trae ninguna razon de kick.
+     */
+    public Component getDefaultKickReason() {
+        String template = String.valueOf(raw.getOrDefault("default-kick-reason", DEFAULTS.get("default-kick-reason")));
+        return miniMessage.deserialize(template);
+    }
+
     public Component get(String key, Component reasonComponent, String serverName) {
         String template = String.valueOf(raw.getOrDefault(key, DEFAULTS.get(key)));
 
         String reasonSerialized = reasonComponent == null
-            ? ""
+            ? miniMessage.serialize(getDefaultKickReason())
             : miniMessage.serialize(reasonComponent);
 
         String filled = template
