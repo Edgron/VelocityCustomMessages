@@ -80,6 +80,21 @@ Este proyecto incluye un workflow de GitHub Actions que compila el plugin autom�
 
 Actualmente el plugin escucha `KickedFromServerEvent`, el único evento público y documentado de la API de Velocity que cubre los kicks provenientes de un servidor backend (por ejemplo, el bloqueo de cuentas no vinculadas de DiscordSRV). Otras claves del `messages.yml` (como `already-connected-proxy` o `internal-connection-error`) están preparadas en la configuración para futuras versiones, en caso de que Velocity exponga eventos públicos adicionales para esos escenarios internos.
 
+## Updates
+
+1. MessagesConfig.java
+   - Se agrego una nueva clave configurable: "default-kick-reason"
+     (valor por defecto: "Sin razón especificada").
+   - Se agrego el metodo getDefaultKickReason() que lee esa clave
+     desde messages.yml y la convierte a Component via MiniMessage.
+   - El metodo get(...) ahora usa ese fallback configurable en vez
+     de un string fijo cuando no se pasa ninguna razon.
+
+2. KickListener.java
+   - Ya no usa Component.text("Sin razon especificada") hardcodeado.
+   - Ahora usa event.getServerKickReason().orElseGet(messages::getDefaultKickReason)
+     para obtener el fallback desde la configuracion.
+     
 ## Licencia
 
 Uso libre para modificar y adaptar a las necesidades de tu propio servidor.
