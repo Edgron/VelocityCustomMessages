@@ -19,8 +19,11 @@ public class KickListener {
         Player player = event.getPlayer();
         String serverName = event.getServer().getServerInfo().getName();
 
+        // ANTES: el fallback "Sin razon especificada" estaba escrito directamente aqui en Java.
+        // AHORA: si el backend no envio razon, usamos el texto configurable de messages.yml
+        // (clave "default-kick-reason"), en vez de un string fijo en el codigo.
         Component originalReason = event.getServerKickReason()
-            .orElse(Component.text("Sin razon especificada"));
+            .orElseGet(messages::getDefaultKickReason);
 
         boolean wasAlreadyConnected = player.getCurrentServer().isPresent()
             && player.getCurrentServer().get().getServerInfo().getName().equals(serverName);
